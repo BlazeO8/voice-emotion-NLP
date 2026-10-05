@@ -1,9 +1,12 @@
 """Voice-Based Emotion Detection using NLP - Streamlit application."""
 import hashlib
 import io
+import os
+import subprocess
+import sys
 import wave
 from datetime import datetime
-import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -15,6 +18,10 @@ try:
     import speech_recognition as sr
 except ImportError:  # handled gracefully in the UI
     sr = None
+
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "models" / "emotion_pipeline.pkl"
+
 
 st.set_page_config(page_title="Voice-Based Emotion Detection", page_icon="🎙️", layout="centered")
 
@@ -40,8 +47,26 @@ st.session_state.setdefault("last_audio_hash", None)
 st.session_state.setdefault("last_result", None)
 
 
+def ensure_model_ready():
+    """Create the dataset and train the model if the saved model is missing."""
+    if MODEL_PATH.exists():
+        return
+
+    dataset_path = BASE_DIR / "data" / "emotion_dataset.csv"
+    if not dataset_path.exists():
+        st.warning("Training dataset not found. Generating it now...")
+        subprocess.run([sys.executable, str(BASE_DIR / "generate_dataset.py")], cwd=str(BASE_DIR), check=True)
+
+    st.warning("Model file missing. Training the model now...")
+    subprocess.run([sys.executable, str(BASE_DIR / "train_model.py")], cwd=str(BASE_DIR), check=True)
+
+    if not MODEL_PATH.exists():
+        raise FileNotFoundError(f"Model still missing after training: {MODEL_PATH}")
+
+
 @st.cache_resource(show_spinner=False)
 def get_model():
+    ensure_model_ready()
     return load_model()
 
 
