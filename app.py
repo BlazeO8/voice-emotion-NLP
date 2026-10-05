@@ -1,7 +1,6 @@
 """Voice-Based Emotion Detection using NLP - Streamlit application."""
 import hashlib
 import io
-import os
 import subprocess
 import sys
 import wave
@@ -21,7 +20,7 @@ except ImportError:  # handled gracefully in the UI
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "models" / "emotion_pipeline.pkl"
-
+DATASET_PATH = BASE_DIR / "data" / "emotion_dataset.csv"
 
 st.set_page_config(page_title="Voice-Based Emotion Detection", page_icon="🎙️", layout="centered")
 
@@ -40,7 +39,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------------- state
 st.session_state.setdefault("history", [])
 st.session_state.setdefault("speech_text", "")
 st.session_state.setdefault("last_audio_hash", None)
@@ -52,8 +50,8 @@ def ensure_model_ready():
     if MODEL_PATH.exists():
         return
 
-    dataset_path = BASE_DIR / "data" / "emotion_dataset.csv"
-    if not dataset_path.exists():
+    DATASET_PATH.parent.mkdir(parents=True, exist_ok=True)
+    if not DATASET_PATH.exists():
         st.warning("Training dataset not found. Generating it now...")
         subprocess.run([sys.executable, str(BASE_DIR / "generate_dataset.py")], cwd=str(BASE_DIR), check=True)
 
@@ -78,13 +76,12 @@ except Exception:
     MODEL = False
 
 
-# ---------------------------------------------------------------- helpers
 def transcribe_wav_bytes(wav_bytes):
     """Speech-to-text from in-memory WAV bytes (audio is never written to disk)."""
     if sr is None:
         st.error("The SpeechRecognition package is not installed. Run: pip install SpeechRecognition")
         return None
-    try:  # energy check -> detect silence
+    try:
         with wave.open(io.BytesIO(wav_bytes)) as w:
             frames = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16)
         if frames.size == 0 or np.sqrt(np.mean(frames.astype(np.float64) ** 2)) < 30:
@@ -100,8 +97,7 @@ def transcribe_wav_bytes(wav_bytes):
     except sr.UnknownValueError:
         st.warning("⚠️ Sorry, I couldn't understand the speech.\n\nPlease speak clearly and try again.")
     except sr.RequestError:
-        st.warning("⚠️ Speech recognition service is unavailable.\n\n"
-                   "Please check your internet connection or use text input.")
+        st.warning("⚠️ Speech recognition service is unavailable.\n\nPlease check your internet connection or use text input.")
     except Exception:
         st.warning("⚠️ Could not process the audio. Please try again or use text input.")
     return None
@@ -124,11 +120,9 @@ def record_from_system_mic():
     except sr.UnknownValueError:
         st.warning("⚠️ Sorry, I couldn't understand the speech.\n\nPlease speak clearly and try again.")
     except sr.RequestError:
-        st.warning("⚠️ Speech recognition service is unavailable.\n\n"
-                   "Please check your internet connection or use text input.")
+        st.warning("⚠️ Speech recognition service is unavailable.\n\nPlease check your internet connection or use text input.")
     except (OSError, AttributeError):
-        st.error("🎙️ No usable microphone found, or PyAudio is not installed / permission was denied. "
-                 "Use the browser recorder above or the text input.")
+        st.error("🎙️ No usable microphone found, or PyAudio is not installed / permission was denied. Use the browser recorder above or the text input.")
     except Exception:
         st.warning("⚠️ Microphone error. Please use text input instead.")
     return None
@@ -161,7 +155,6 @@ def analyze(text, source):
         "Emotion": f"{EMOJI[emotion]} {emotion.capitalize()}", "Confidence": f"{confidence:.1f}%"})
 
 
-# ---------------------------------------------------------------- sidebar
 with st.sidebar:
     st.markdown("### About the Model")
     st.markdown("**Algorithm:**  \nLogistic Regression\n\n**Feature Extraction:**  \nTF-IDF (1-2 grams)\n\n"
@@ -172,7 +165,6 @@ with st.sidebar:
     st.info("Trained on an educational/demo dataset, so results on real speech may vary.")
     st.caption("Audio is used for speech recognition and is not permanently stored by this application.")
 
-# ---------------------------------------------------------------- header
 st.markdown('<div class="title">🎙️ Voice-Based Emotion Detection</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Using Natural Language Processing</div>', unsafe_allow_html=True)
 st.markdown('<div class="desc">Speak naturally and let the system analyze the emotion expressed in your sentence.</div>',
@@ -181,7 +173,6 @@ st.markdown('<div class="desc">Speak naturally and let the system analyze the em
 if MODEL is None:
     st.error("⚠️ Trained model not found (`models/emotion_pipeline.pkl`). Run `python train_model.py` first.")
 
-# ---------------------------------------------------------------- voice input
 with st.container(border=True):
     st.subheader("🎤 Voice Input")
     if hasattr(st, "audio_input"):
@@ -189,15 +180,14 @@ with st.container(border=True):
         if audio is not None:
             data = audio.getvalue()
             h = hashlib.md5(data).hexdigest()
-            if h != st.session_state.last_audio_hash:  # transcribe each recording once
+            if h != st.session_state.last_audio_hash:
                 st.session_state.last_audio_hash = h
                 with st.spinner("Converting speech to text..."):
                     text = transcribe_wav_bytes(data)
                 if text:
                     st.session_state.speech_text = text
     else:
-        st.info("Your Streamlit version has no browser recorder. Upgrade (`pip install -U streamlit`) "
-                "or use the system microphone / text input.")
+        st.info("Your Streamlit version has no browser recorder. Upgrade (`pip install -U streamlit`) or use the system microphone / text input.")
     with st.expander("Use system microphone instead (requires PyAudio)"):
         if st.button("🎙️ Record with system microphone"):
             text = record_from_system_mic()
@@ -212,14 +202,12 @@ with st.container(border=True):
 
 st.markdown("<p style='text-align:center;color:#9ca3af'>— OR —</p>", unsafe_allow_html=True)
 
-# ---------------------------------------------------------------- text fallback
 with st.container(border=True):
     st.subheader("⌨️ Enter Text Manually")
     manual = st.text_input("Type a sentence", placeholder="I am extremely happy today!", key="manual_text")
     if st.button("🔍 Analyze Text", width="stretch"):
         analyze(manual, "Typed")
 
-# ---------------------------------------------------------------- result
 res = st.session_state.last_result
 if res:
     e = res["emotion"]
@@ -230,14 +218,12 @@ if res:
         f'<div class="result-conf">Model Confidence: {res["confidence"]:.1f}%</div></div>',
         unsafe_allow_html=True)
     st.markdown(f"> \"{res['text']}\"")
-    st.info(f"The model classified this sentence as **{e.capitalize()}** based on patterns learned from the "
-            "training dataset. This is a text-based prediction, not a measurement of your actual psychological state.")
+    st.info(f"The model classified this sentence as **{e.capitalize()}** based on patterns learned from the training dataset. This is a text-based prediction, not a measurement of your actual psychological state.")
     with st.expander("See probability for every emotion"):
         pdf = pd.DataFrame({"Emotion": [k.capitalize() for k in res["probs"]],
                             "Probability (%)": [round(v, 1) for v in res["probs"].values()]}).set_index("Emotion")
         st.bar_chart(pdf)
 
-# ---------------------------------------------------------------- history
 st.markdown("### 🕒 Prediction History (this session)")
 if st.session_state.history:
     st.dataframe(pd.DataFrame(st.session_state.history[::-1]), width="stretch", hide_index=True)
