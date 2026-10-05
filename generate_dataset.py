@@ -6,10 +6,16 @@ demo. It is NOT a real-world dataset, so accuracy on it is optimistic and does
 not represent performance on real human speech.
 """
 import itertools
+import os
 import random
+from pathlib import Path
+
 import pandas as pd
 
 random.seed(42)
+BASE_DIR = Path(__file__).resolve().parent
+DATA_PATH = BASE_DIR / "data" / "emotion_dataset.csv"
+DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 OPENERS = ["", "Honestly, ", "Right now ", "Today ", "Well, ", "You know, ", "Lately ", "Right now, "]
 
@@ -77,5 +83,6 @@ data = []
 for lab, base in [("happy", HAPPY), ("sad", SAD), ("angry", ANGRY), ("neutral", NEUTRAL)]:
     data += build(lab, base)
 random.shuffle(data)
-pd.DataFrame(data, columns=["text", "emotion"]).to_csv("data/emotion_dataset.csv", index=False)
-print("Saved data/emotion_dataset.csv with", len(data), "rows")
+
+pd.DataFrame(data, columns=["text", "emotion"]).to_csv(DATA_PATH, index=False)
+print(f"Saved {DATA_PATH} with {len(data)} rows")
