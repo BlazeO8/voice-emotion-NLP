@@ -204,7 +204,7 @@ if res:
         f'<div class="result-emotion">{EMOJI[e]} {e.upper()}</div>'
         f'<div class="result-conf">Model Confidence: {res["confidence"]:.1f}%</div></div>',
         unsafe_allow_html=True)
-    st.markdown(f"> "{res['text']}"")
+    st.markdown(f"> \"{res['text']}\"")
     st.info(f"The model classified this sentence as **{e.capitalize()}** based on patterns learned from the "
             "training dataset. This is a text-based prediction, not a measurement of your actual psychological state.")
     with st.expander("See probability for every emotion"):
