@@ -19,8 +19,8 @@ except ImportError:  # handled gracefully in the UI
     sr = None
 
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "models" / "emotion_pipeline.pkl"
-DATASET_PATH = BASE_DIR / "data" / "emotion_dataset.csv"
+MODEL_PATH = BASE_DIR / "emotion_pipeline.pkl"
+DATASET_PATH = BASE_DIR / "emotion_dataset.csv"
 
 st.set_page_config(page_title="Voice-Based Emotion Detection", page_icon="🎙️", layout="centered")
 
@@ -46,11 +46,10 @@ st.session_state.setdefault("last_result", None)
 
 
 def ensure_model_ready():
-    """Create the dataset and train the model if the saved model is missing."""
+    """Use the repo-root dataset/model that already exists in this project."""
     if MODEL_PATH.exists():
         return
 
-    DATASET_PATH.parent.mkdir(parents=True, exist_ok=True)
     if not DATASET_PATH.exists():
         st.warning("Training dataset not found. Generating it now...")
         subprocess.run([sys.executable, str(BASE_DIR / "generate_dataset.py")], cwd=str(BASE_DIR), check=True)
@@ -165,13 +164,13 @@ with st.sidebar:
     st.info("Trained on an educational/demo dataset, so results on real speech may vary.")
     st.caption("Audio is used for speech recognition and is not permanently stored by this application.")
 
-st.markdown('<div class="title">🎙️ Voice-Based Emotion Detection</div>', unsafe_allow_html=True)
+st.markdown('<div class="title">🎙��� Voice-Based Emotion Detection</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Using Natural Language Processing</div>', unsafe_allow_html=True)
 st.markdown('<div class="desc">Speak naturally and let the system analyze the emotion expressed in your sentence.</div>',
             unsafe_allow_html=True)
 
 if MODEL is None:
-    st.error("⚠️ Trained model not found (`models/emotion_pipeline.pkl`). Run `python train_model.py` first.")
+    st.error("⚠️ Trained model not found (`emotion_pipeline.pkl`). Run `python train_model.py` first.")
 
 with st.container(border=True):
     st.subheader("🎤 Voice Input")

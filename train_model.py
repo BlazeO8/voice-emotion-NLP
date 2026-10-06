@@ -22,17 +22,15 @@ from sklearn.pipeline import Pipeline
 from preprocess import preprocess_text
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_PATH = BASE_DIR / "data" / "emotion_dataset.csv"
-MODEL_PATH = BASE_DIR / "models" / "emotion_pipeline.pkl"
+DATA_PATH = BASE_DIR / "emotion_dataset.csv"
+MODEL_PATH = BASE_DIR / "emotion_pipeline.pkl"
 CM_PATH = BASE_DIR / "results" / "confusion_matrix.png"
 REPORT_PATH = BASE_DIR / "results" / "evaluation_report.txt"
 LABELS = ["happy", "sad", "angry", "neutral"]
 
 
 def main():
-    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
     CM_PATH.parent.mkdir(parents=True, exist_ok=True)
-    DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     if not DATA_PATH.exists():
         sys.exit(f"Dataset not found at {DATA_PATH}. Run: python generate_dataset.py")

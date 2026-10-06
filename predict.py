@@ -1,9 +1,11 @@
 """Reusable prediction helpers."""
 import os
+from pathlib import Path
 
 import joblib
 
-MODEL_PATH = os.path.join("models", "emotion_pipeline.pkl")
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "emotion_pipeline.pkl"
 KNOWN_EMOTIONS = {"happy", "sad", "angry", "neutral"}
 
 

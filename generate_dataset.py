@@ -1,9 +1,9 @@
 """
-Generates the EDUCATIONAL / DEMO emotion dataset (data/emotion_dataset.csv).
+Generates the EDUCATIONAL / DEMO emotion dataset (emotion_dataset.csv).
 
 NOTE: This is a synthetic, template-based dataset created for a college project
-demo. It is NOT a real-world dataset, so accuracy on it is optimistic and does
-not represent performance on real human speech.
+ demo. It is NOT a real-world dataset, so accuracy on it is optimistic and does
+ not represent performance on real human speech.
 """
 import itertools
 import os
@@ -14,8 +14,7 @@ import pandas as pd
 
 random.seed(42)
 BASE_DIR = Path(__file__).resolve().parent
-DATA_PATH = BASE_DIR / "data" / "emotion_dataset.csv"
-DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+DATA_PATH = BASE_DIR / "emotion_dataset.csv"
 
 OPENERS = ["", "Honestly, ", "Right now ", "Today ", "Well, ", "You know, ", "Lately ", "Right now, "]
 
